@@ -1,8 +1,24 @@
+import 'package:edusurvey/data/model/user_model.dart';
 import 'package:edusurvey/presentations/views/splash_screen.dart';
+import 'package:edusurvey/view_models/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive properly
+  await Hive.initFlutter();
+
+  // Register adapter
+  Hive.registerAdapter(UserModelAdapter());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (context) => UserProvider())],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
