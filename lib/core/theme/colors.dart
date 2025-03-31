@@ -9,4 +9,5 @@ class AllColors {
   static const Color alertColor = Colors.red;
   static const Color successColor = Colors.green;
   static const Color baseColor = Colors.blue;
+  static const Color surveyButtonColor = Color.fromARGB(255, 69, 145, 207);
 }

@@ -1,8 +1,8 @@
-import 'package:edusurvey/data/database/hive_services.dart';
+import 'package:edusurvey/data/database/hive_user_services.dart';
 import 'package:edusurvey/data/model/user_model.dart';
 
 class UserRepository {
-  final HiveService _hiveService = HiveService();
+  final HiveUserService _hiveService = HiveUserService();
 
   Future<void> registerUser(String name, String email, String password) async {
     UserModel user = UserModel(name: name, email: email, password: password);

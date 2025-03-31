@@ -109,4 +109,11 @@ class UserProvider with ChangeNotifier {
       return null;
     }
   }
+
+  Future<void> signOut() async {
+    _currentUser = null;
+    _errorMessage = null;
+    _isLoading = false;
+    notifyListeners();
+  }
 }

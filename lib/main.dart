@@ -1,5 +1,7 @@
+import 'package:edusurvey/data/model/survey_model.dart';
 import 'package:edusurvey/data/model/user_model.dart';
 import 'package:edusurvey/presentations/views/splash_screen.dart';
+import 'package:edusurvey/view_models/survey_provider.dart';
 import 'package:edusurvey/view_models/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -13,9 +15,13 @@ void main() async {
 
   // Register adapter
   Hive.registerAdapter(UserModelAdapter());
+  Hive.registerAdapter(SurveyModelAdapter());
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (context) => UserProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider(create: (context) => SurveyFormProvider()),
+      ],
       child: const MyApp(),
     ),
   );

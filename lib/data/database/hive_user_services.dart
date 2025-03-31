@@ -1,7 +1,7 @@
 import 'package:edusurvey/data/model/user_model.dart';
 import 'package:hive/hive.dart';
 
-class HiveService {
+class HiveUserService {
   static const String userBoxName = 'userBox';
 
   Future<void> addUser(UserModel user) async {
