@@ -1,5 +1,8 @@
 import 'package:edusurvey/core/theme/colors.dart';
 import 'package:edusurvey/data/model/survey_model.dart';
+import 'package:edusurvey/presentations/views/add_survey_page.dart';
+import 'package:edusurvey/presentations/views/edit_survey_page.dart';
+import 'package:edusurvey/presentations/views/survey_commencement_page.dart';
 import 'package:edusurvey/presentations/views/user_profile.dart';
 import 'package:edusurvey/presentations/widgets/custom_sign_buttons.dart';
 
@@ -95,8 +98,10 @@ class _HomeScreenState extends State<HomeScreen>
             child: CustomButton(
               text: 'Add Survey',
               onPressed: () {
-                // Navigate to add survey page
-                // TODO: Implement navigation to your AddSurveyScreen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddSurveyPage()),
+                );
               },
               isLoading: false,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -481,17 +486,31 @@ class _HomeScreenState extends State<HomeScreen>
 
     switch (action) {
       case 'start':
-        // TODO: Navigate to Survey Commencement screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SurveyCommencementPage()),
+        );
         debugPrint('Starting survey: ${survey.referenceNumber}');
         break;
 
       case 'edit':
-        // TODO: Navigate to edit survey screen
-        debugPrint('Editing survey: ${survey.referenceNumber}');
+        // Navigate to edit survey screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditSurveyScreen(survey: survey),
+          ),
+        ).then((updated) {
+          // Refresh the list if the survey was updated
+          if (updated == true) {
+            setState(() {
+              surveyProvider.getAllSurveys();
+            });
+          }
+        });
         break;
 
       case 'delete':
-        // Show confirmation dialog before deleting
         showDialog(
           context: context,
           builder:
@@ -507,14 +526,14 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   TextButton(
                     onPressed: () async {
-                      // Navigator.pop(context);
-                      // // Update survey status to Withheld
-                      // await surveyProvider.updateSurveyStatus(
-                      //   survey.referenceNumber,
-                      //   'Withheld',
-                      // );
-                      // // Refresh the survey list
-                      // setState(() {});
+                      Navigator.pop(context);
+                      // Update survey status to Withheld
+                      await surveyProvider.updateSurveyStatus(
+                        survey.referenceNumber,
+                        'Withheld',
+                      );
+                      // Refresh the survey list
+                      setState(() {});
                     },
                     child: const Text(
                       'Move',

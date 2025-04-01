@@ -27,6 +27,8 @@ class SurveyFormProvider extends ChangeNotifier {
   DateTime? get dueDate => _dueDate;
   bool get isLoading => _isLoading;
   String? get userErrorMessage => _userErrorMessage;
+  // Add repository getter
+  SurveyRepository get surveyRepository => _surveyRepository;
 
   // Setters
   void setSurveyName(String name) {
@@ -39,6 +41,13 @@ class SurveyFormProvider extends ChangeNotifier {
     final random = Random();
     _referenceNumber = "SRV-${random.nextInt(900000) + 100000}";
     debugPrint('ReferenceNumber generated: $_referenceNumber');
+    notifyListeners();
+  }
+
+  // Add method to set specific reference number
+  void setExistingReferenceNumber(String referenceNumber) {
+    _referenceNumber = referenceNumber;
+    debugPrint('ReferenceNumber set to existing: $referenceNumber');
     notifyListeners();
   }
 
@@ -246,54 +255,55 @@ class SurveyFormProvider extends ChangeNotifier {
     debugPrint('Deleting survey with reference number: $_referenceNumber');
     await _surveyRepository.deleteSurvey(_referenceNumber);
   }
+
+  // Make sure the updateSurveyStatus method is correctly implemented:
+  Future<bool> updateSurveyStatus(
+    String referenceNumber,
+    String newStatus,
+  ) async {
+    debugPrint('Updating survey status: $referenceNumber to $newStatus');
+    setIsLoading(true);
+
+    try {
+      // First get the survey by reference number
+      final survey = await _surveyRepository.getSurveyByReference(
+        referenceNumber,
+      );
+
+      if (survey == null) {
+        debugPrint('Survey not found with reference: $referenceNumber');
+        setUserErrorMessage('Survey not found');
+        setIsLoading(false);
+        return false;
+      }
+
+      // Create updated survey with new status
+      final updatedSurvey = SurveyModel(
+        surveyName: survey.surveyName,
+        referenceNumber: survey.referenceNumber,
+        description: survey.description,
+        commencementDate: survey.commencementDate,
+        dueDate: survey.dueDate,
+        assignedTo: survey.assignedTo,
+        assignedBy: survey.assignedBy,
+        dateCreated: survey.dateCreated,
+        status: newStatus,
+      );
+
+      // Delete the old survey
+      await _surveyRepository.deleteSurvey(referenceNumber);
+
+      // Create the updated survey
+      await _surveyRepository.createSurvey(updatedSurvey);
+
+      debugPrint('Survey status updated successfully');
+      setIsLoading(false);
+      return true;
+    } catch (e) {
+      debugPrint('Error updating survey status: $e');
+      setUserErrorMessage('Failed to update survey status');
+      setIsLoading(false);
+      return false;
+    }
+  }
 }
-
-// Method to update a survey's status
-// Future<bool> updateSurveyStatus(
-//   String referenceNumber,
-//   String newStatus,
-// ) async {
-//   debugPrint('Updating survey status: $referenceNumber to $newStatus');
-//   setIsLoading(true);
-
-//   try {
-//     // First get the survey by reference number
-//     final survey = await _surveyRepository.getSurveyByReference(
-//       referenceNumber,
-//     );
-
-//     if (survey == null) {
-//       debugPrint('Survey not found with reference: $referenceNumber');
-//       setUserErrorMessage('Survey not found');
-//       setIsLoading(false);
-//       return false;
-//     }
-
-//     // Create updated survey with new status
-//     final updatedSurvey = SurveyModel(
-//       surveyName: survey.surveyName,
-//       referenceNumber: survey.referenceNumber,
-//       description: survey.description,
-//       commencementDate: survey.commencementDate,
-//       dueDate: survey.dueDate,
-//       assignedTo: survey.assignedTo,
-//       assignedBy: survey.assignedBy,
-//       dateCreated: survey.dateCreated,
-//       status: newStatus,
-//     );
-
-//     // Delete the old survey
-//     await _surveyRepository.deleteSurvey(referenceNumber);
-
-//     // Create the updated survey
-//     await _surveyRepository.createSurvey(updatedSurvey);
-
-//     debugPrint('Survey status updated successfully');
-//     setIsLoading(false);
-//     return true;
-//   } catch (e) {
-//     debugPrint('Error updating survey status: $e');
-//     setUserErrorMessage('Failed to update survey status');
-//     setIsLoading(false);
-//     return false;
-//   }

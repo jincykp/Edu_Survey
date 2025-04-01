@@ -38,6 +38,7 @@ dependencies:
   build_runner: ^2.4.15
   provider: ^6.1.4
   intl: ^0.20.2
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

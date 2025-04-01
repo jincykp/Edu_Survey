@@ -1,88 +1,90 @@
 import 'package:edusurvey/data/model/user_model.dart';
 import 'package:edusurvey/data/repositories/user_repositories.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProvider with ChangeNotifier {
   final UserRepository _userRepository = UserRepository();
   UserModel? _currentUser;
   bool _isLoading = false;
-
   String? _errorMessage;
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  /// Load user data from SharedPreferences (used when app starts)
+  Future<void> loadUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('user_email');
+
+    if (email != null) {
+      _currentUser = await _userRepository.getUserByEmail(email);
+      notifyListeners();
+    }
+  }
+
+  /// Register new user & persist data
   Future<void> signUp(String name, String email, String password) async {
     _isLoading = true;
     notifyListeners();
 
-    // Register user
-    await _userRepository.registerUser(name, email, password);
+    try {
+      await _userRepository.registerUser(name, email, password);
+      _currentUser = await _userRepository.getUserByEmail(email);
 
-    // Fetch user details from database after registration
-    _currentUser = await _userRepository.getUserByEmail(email);
-
-    // Debug: Print user details in console
-    if (_currentUser != null) {
-      print(
-        "User Registered: Name: ${_currentUser!.name}, Email: ${_currentUser!.email}",
-      );
-    } else {
-      print("Error: User not found in the database!");
+      if (_currentUser != null) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_email', _currentUser!.email);
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setBool(
+          'isRegistered',
+          true,
+        ); // Set this flag when user registers
+      }
+    } catch (e) {
+      _errorMessage = "Registration failed: ${e.toString()}";
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
+  /// Login user & persist session
   Future<bool> signIn(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      print("Attempting login for email: $email");
-
-      // Get user from repository
       final user = await _userRepository.getUserByEmail(email);
 
-      print(
-        "User retrieved from database: ${user != null ? 'Found' : 'Not found'}",
-      );
-
-      if (user != null) {
-        print(
-          "Database password: ${user.password}, Entered password: $password",
-        );
-      }
-
-      // Check if user exists and password matches
       if (user != null && user.password == password) {
         _currentUser = user;
-        print("Login successful for user: ${user.name}");
+
+        // Save login session
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_email', user.email);
+        await prefs.setBool('isLoggedIn', true);
+
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
         _errorMessage = "Invalid email or password";
-        print("Login failed: Invalid credentials");
-        _isLoading = false;
-        notifyListeners();
-        return false;
       }
     } catch (e) {
-      print("Login error: ${e.toString()}");
-      _errorMessage = "An error occurred: ${e.toString()}";
-      _isLoading = false;
-      notifyListeners();
-      return false;
+      _errorMessage = "Login failed: ${e.toString()}";
     }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
 
+  /// Update password & persist changes
   Future<bool> updatePassword(String email, String newPassword) async {
     _isLoading = true;
-    _errorMessage = null;
     notifyListeners();
 
     try {
@@ -90,17 +92,17 @@ class UserProvider with ChangeNotifier {
         email,
         newPassword,
       );
-      _isLoading = false;
-      notifyListeners();
       return success;
     } catch (e) {
       _errorMessage = e.toString();
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
+  /// Get user by email
   Future<UserModel?> getUserByEmail(String email) async {
     try {
       return await _userRepository.getUserByEmail(email);
@@ -110,10 +112,17 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  /// Logout user & clear session data
   Future<void> signOut() async {
     _currentUser = null;
     _errorMessage = null;
     _isLoading = false;
     notifyListeners();
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_email');
+    await prefs.setBool('isLoggedIn', false);
+    // Do NOT clear isRegistered flag during logout
+    // This is what keeps the app going to login screen instead of signup
   }
 }

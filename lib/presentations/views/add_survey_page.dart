@@ -38,9 +38,13 @@ class _AddSurveyPageState extends State<AddSurveyPage> {
             builder: (context, surveyProvider, _) {
               return Scaffold(
                 appBar: AppBar(
+                  foregroundColor: AllColors.primaryColor,
                   title: const Text(
                     'Add New Survey',
-                    style: TextStyle(color: Colors.black87),
+                    style: TextStyle(
+                      color: AllColors.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   backgroundColor: Colors.white,
                   elevation: 1,
@@ -56,7 +60,7 @@ class _AddSurveyPageState extends State<AddSurveyPage> {
                         children: [
                           // Survey Name
                           _buildFieldLabel('Survey Name'),
-                          _buildTextField(
+                          buildTextField(
                             hintText: 'Enter survey name',
                             value: surveyProvider.surveyName,
                             onChanged:
@@ -75,7 +79,7 @@ class _AddSurveyPageState extends State<AddSurveyPage> {
 
                           // Description
                           _buildFieldLabel('Detailed Description'),
-                          _buildTextField(
+                          buildTextField(
                             hintText: 'Enter detailed description',
                             value: surveyProvider.description,
                             onChanged:
@@ -124,7 +128,7 @@ class _AddSurveyPageState extends State<AddSurveyPage> {
 
                           // Assigned To
                           _buildFieldLabel('Assigned To'),
-                          _buildTextField(
+                          buildTextField(
                             hintText: 'Enter assignee name',
                             value: surveyProvider.assignedTo,
                             onChanged:
@@ -283,7 +287,7 @@ class _AddSurveyPageState extends State<AddSurveyPage> {
   }
 
   // Helper method to build text fields
-  Widget _buildTextField({
+  Widget buildTextField({
     required String hintText,
     required String value,
     required Function(String) onChanged,
